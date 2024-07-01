@@ -1,3 +1,4 @@
-child1,child1@test.com
-child2,child2@test.com
-child3,child3@test.edu
+First Name,Last Name,Grade,Phone,Email
+Child,1,1,,
+Child,2,3,Phone#,parentemail1@test.com
+Child,3,8,,parentemail2@test.com
