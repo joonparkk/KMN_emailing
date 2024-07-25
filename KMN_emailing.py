@@ -15,59 +15,64 @@ subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pandas'])
 #csv reading library
 import pandas as reader
     
-sender = "myemail@test.com"
-pw = "password"
+sender = ""
+pw = ""
 child = ""
 subject = ""
 attachment_path = ""
 body = ""
 
 #read the csv file of all emails iterating through each row
-csv_file = "mycsv.csv"
+csv_file = ""
 information = reader.read_csv(csv_file)
 
-def send_emails(email_list):
+def compile_list(email_list):
+    recipients = []
     for index, row in email_list.iterrows():
         #Iterate through each row and retrieve the "Email", and "Name" of the student and the email associated with the student
         if reader.isnull(row['Email']) == True:
             continue
-        email_recipient = row['Email']
+        recipients.append(row['Email'])
+    send_emails(recipients)
 
+def send_emails(recipients):
         #Formulate Email
-        email = MIMEMultipart()
-        email['From'] = sender
-        email['To'] = email_recipient
-        email['Subject'] = subject
-        email.attach(MIMEText(body, 'plain'))
-        if attachment_path != "":
-            attachment = open(attachment_path, 'rb')
-            attachment_package = MIMEBase('application', 'octet-stream')
-            attachment_package.set_payload((attachment).read())
-            encoders.encode_base64(attachment_package)
-            attachment_package.add_header('Content-Disposition', "attachment; filename= " + attachment_path)
-            email.attach(attachment_package)
-
-
+    email = MIMEMultipart()
+    email['From'] = sender
+    email['Bcc'] = ', '.join(recipients)
+    email['Subject'] = subject
+    email.attach(MIMEText(body, 'plain'))
+    if attachment_path != "":
+        email.attach(attachment_package)
         #Layer of security
-        context = ssl.create_default_context()
+    context = ssl.create_default_context()
         #Send email
-        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-            smtp.starttls(context = context)
-            smtp.login(sender, pw)
-            smtp.sendmail(sender, email_recipient, email.as_string())
+    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+        smtp.starttls(context = context)
+        smtp.login(sender, pw)
+        smtp.sendmail(sender, recipients, email.as_string())
     progressLabel.configure(text= "Progress: Emails have been sent!")
 
 def open_file():
     global attachment_path 
     attachment_path = filedialog.askopenfilename()
     attachmentLabel.configure(text= "Attachment: {}".format(attachment_path))
+    get_path(attachment_path)
+
+def get_path(attachment_path):
+    global attachment_package
+    with open(attachment_path, 'rb') as attachment:
+        attachment_package = MIMEBase('application', 'octet-stream')
+        attachment_package.set_payload((attachment).read())
+        encoders.encode_base64(attachment_package)
+        attachment_package.add_header('Content-Disposition', "attachment; filename= " + attachment_path)
 
 def get_text():
     global body
     global subject
     body = inputtxt.get("1.0", 'end-1c')
     subject = subjecttxt.get("1.0", 'end-1c')
-    send_emails(information)
+    compile_list(information)
 
 
 myWindow = Tk()
