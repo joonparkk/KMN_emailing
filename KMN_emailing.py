@@ -9,7 +9,8 @@ from email import encoders
 from tkinter import *
 from tkinter import filedialog
 import tkinter.font as tkFont
-
+import html
+import os
 #Automatically import the pip pandas library across different devices
 subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pandas'])
 
@@ -66,7 +67,8 @@ def get_path(attachment_path):
         attachment_package = MIMEBase('application', 'octet-stream')
         attachment_package.set_payload((attachment).read())
         encoders.encode_base64(attachment_package)
-        attachment_package.add_header('Content-Disposition', "attachment; filename= " + attachment_path)
+        filename = os.path.basename(attachment_path)
+        attachment_package.add_header('Content-Disposition', f'attachment; filename="{filename}"')
 
 def get_text():
     global subject
@@ -76,19 +78,27 @@ def get_text():
 def get_html_body():
     content = ""
     index = "1.0"
-    while True:
-        next_index = inputtxt.index(f"{index} +1c")
-        if next_index == index:
-            break
-        chars = inputtxt.get(index, next_index)
-        tags = inputtxt.tag_names(index)
+    try:
+        while True:
+            next_index = inputtxt.index(f"{index} +1c")
+            if next_index == index:
+                break
 
-        if "bold" in tags:
-            content += f"<b>{chars}</b>"
-        else:
-            content += chars
+            char = inputtxt.get(index, next_index)
+            escaped_char = html.escape(char)
 
-        index = next_index
+            if char == "\n":
+                content += "<br>"
+            else:
+                tags = inputtxt.tag_names(index)
+                if "bold" in tags:
+                    content += f"<b>{escaped_char}</b>"
+                else:
+                    content += escaped_char
+
+            index = next_index
+    except Exception as e:
+        print("Error in get_html_body:", e)
 
     return f"<html><body>{content}</body></html>"
 
