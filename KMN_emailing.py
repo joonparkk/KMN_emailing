@@ -24,7 +24,7 @@ attachment_path = ""
 body = ""
 
 #read the csv file of all emails iterating through each row
-csv_file = "KMN_emails.csv"
+csv_file = "Kumon_Students.csv"
 information = reader.read_csv(csv_file)
 
 def compile_list(email_list):
@@ -42,7 +42,7 @@ def send_emails(recipients):
     email['From'] = sender
     email['Bcc'] = ', '.join(recipients)
     email['Subject'] = subject
-    email.attach(MIMEText(body, 'plain'))
+    email.attach(MIMEText(get_html_body(), 'html'))
     if attachment_path != "":
         email.attach(attachment_package)
         #Layer of security
@@ -69,11 +69,28 @@ def get_path(attachment_path):
         attachment_package.add_header('Content-Disposition', "attachment; filename= " + attachment_path)
 
 def get_text():
-    global body
     global subject
-    body = inputtxt.get("1.0", 'end-1c')
     subject = subjecttxt.get("1.0", 'end-1c')
     compile_list(information)
+
+def get_html_body():
+    content = ""
+    index = "1.0"
+    while True:
+        next_index = inputtxt.index(f"{index} +1c")
+        if next_index == index:
+            break
+        chars = inputtxt.get(index, next_index)
+        tags = inputtxt.tag_names(index)
+
+        if "bold" in tags:
+            content += f"<b>{chars}</b>"
+        else:
+            content += chars
+
+        index = next_index
+
+    return f"<html><body>{content}</body></html>"
 
 def toggle_bold():
     try:
